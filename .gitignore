@@ -1,2 +1,9 @@
 
+#Abaqus files
 *.odb
+*.com
+*.dat
+*.env
+*.msg
+*.prt
+*.sta
