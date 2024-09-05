@@ -1,0 +1,4 @@
+FVBND 1 4
+wall
+BOUNDARIES
+1 1 1 257 1 200 1 1 F -1

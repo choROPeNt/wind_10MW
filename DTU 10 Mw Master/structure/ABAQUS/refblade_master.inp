@@ -1,0 +1,31 @@
+** **********************************************
+** DTU 10MW Reference Wind Turbine Blade
+** ABAQUS Master Input File
+** **********************************************
+**
+*HEADING
+DTU 10MW Reference Wind Turbine
+*INCLUDE, INPUT=refblade_mesh.inp
+*INCLUDE, INPUT=refblade_materials.inp
+*INCLUDE, INPUT=refblade_layup.inp
+*INCLUDE, INPUT=refblade_te_glue.inp
+**
+*ORIENTATION, NAME=BLADEORI, SYSTEM=RECTANGULAR
+1, 0, 0, 0, 1, 0, 0, 0, 0
+2, 0.0
+*ORIENTATION, NAME=TE_GLUE_ORI, SYSTEM=RECTANGULAR
+0, 0, 1, 1, 0, 0, 0, 0, 0
+3, 0.0
+**
+*BOUNDARY
+REFPOINT-001_REFPOINT, 1, 6, 0.0
+**
+**
+***************************************
+** Step: Natural Frequency Extraction
+***************************************
+*STEP, NAME=NAT_FRE
+*FREQUENCY
+8
+*END STEP
+**

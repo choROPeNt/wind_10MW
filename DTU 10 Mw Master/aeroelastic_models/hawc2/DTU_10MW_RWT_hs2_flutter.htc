@@ -1,0 +1,95 @@
+continue_in_file ./htc/DTU_10MW_RWT_structure_eig.htc ;
+;---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+begin wind ;
+  density                 1.225 ;
+  wsp                     11   ;
+  tint                    0.201454545454545   ;
+  horizontal_input        1     ;            0=false, 1=true
+  windfield_rotations     0 0.0 0.0 ;    yaw, tilt, rotation
+  center_pos0             0.0 0.0 -119 ; hub heigth
+  shear_format            3 0.2 ; 
+  turb_format             0     ;  0=none, 1=mann,2=flex
+  tower_shadow_method     0    ;  0=none, 1=potential flow, 2=jet
+end wind;
+;
+begin aero ;
+  nblades  3;
+  hub_vec shaft -3 ;         rotor rotation vector (normally shaft composant directed from pressure to sustion side)
+  link 1 mbdy_c2_def blade1;
+  link 2 mbdy_c2_def blade2;
+  link 3 mbdy_c2_def blade3;
+  ae_filename        ./data/DTU_10MW_RWT_ae.dat ;
+  pc_filename        ./data/DTU_10MW_RWT_pc.dat ;
+  induction_method   1 ;     0=none, 1=normal
+  aerocalc_method    1 ;     0=ingen aerodynamic, 1=med aerodynamic
+  aerosections       50 ;
+  ae_sets            1 1 1;
+  tiploss_method     1 ;     0=none, 1=prandtl
+  dynstall_method    2 ;     0=none, 1=stig ?e method,2=mhh method
+end aero ;
+;
+begin hawcstab2 ;
+  begin ground_fixed_substructure ;
+    main_body tower ;
+    main_body towertop ;
+;    log_decrements 2.0 2.0 ; 
+  end ground_fixed_substructure ;
+  begin rotating_axissym_substructure ;
+    main_body shaft ;
+;    log_decrements 25.0 32.0 ;
+  end rotating_axissym_substructure ;
+  begin rotating_threebladed_substructure ;
+    main_body hub1 ;
+    main_body blade1 ;
+;    log_decrements 3.07 3.02 9.24 10.78 18.31 31.63 4.7 48.0 ;
+    second_order_actuator pitch1 100.0 0.7 ;
+  end rotating_threebladed_substructure ;
+  operational_data_filename ./data/operational_data_flutter.opt ;
+  ; pi_pitch_controller 5000.0 1.2671 1.56 0.7 11.6 621.5 0.7 0.8 10.0 1 ;
+  ; pi_cyclic_pitch_controller 30.0 0.0 0.0 1e10 5.0 0.9 ;
+  begin operational_data ;
+    windspeed 4.0 25.0 22 ; cut-in [m/s], cut-out [m/s], points [-]
+    genspeed 6.0 9.6 ; [rpm]
+    gearratio 1.0 ; [-]
+    minpitch 0.0 ; [deg.]
+    opt_lambda 7.5 ; [-]
+    maxpow 10638.3 ; [kW]
+    prvs_turbine 1 ; [-]
+    include_torsiondeform 1 ; [-]
+  end operational_data ;
+  begin controller_tuning ;
+    partial_load 0.05 0.7; fn [hz], zeta [-]
+    full_load 0.06 0.7 ; fn [hz], zeta [-]
+    gain_scheduling 2 ; 1 linear, 2 quadratic 
+  end controller_tuning ;
+  begin controller ;
+    begin input ;
+	  constraint bearing1 shaft_rot ;	  
+	  constraint bearing2 pitch1 collective ;	  
+	  constraint bearing2 pitch1 cosine ;	  
+	  constraint bearing2 pitch1 sine ;	  
+	end input ;
+    begin output ;
+	  constraint bearing1 shaft_rot 1 only 2 ; 1
+	  constraint bearing2 pitch1 1 only 1 collective ; 2
+	  constraint bearing2 pitch1 1 only 1 cosine ; 3
+	  constraint bearing2 pitch1 1 only 1 sine ; 4
+	  mbdy momentvec hub1 1 0 hub1 only 1 collective ; 5
+	  mbdy momentvec hub1 1 0 hub1 only 1 cosine ; 6
+	  mbdy momentvec hub1 1 0 hub1 only 1 sine ; 7
+      mbdy momentvec tower 7 0 tower ; # yaw bearing ; 8,9,10
+	  mbdy state pos towertop 1 0.0 global ; # 11,12,13, tower top displacement
+	  ; mbdy momentvec shaft 3 0 shaft ; # main bearing ;	 14,15,16  
+	  ; mbdy momentvec blade1 1 0 blade1 only 2 collective ; 17
+	  ; mbdy momentvec blade1 1 0 blade1 only 2 cosine ; 18
+	  ; mbdy momentvec blade1 1 0 blade1 only 2 sine ; 19
+	  mbdy momentvec blade1 1 0 blade1 only 1 collective ; 14
+	  mbdy momentvec blade1 1 0 blade1 only 1 cosine ; 15
+	  mbdy momentvec blade1 1 0 blade1 only 1 sine ; 16
+	  end output ;
+  end controller ;  
+;  compute_optimal_pitch_angle bladedeform tipcorrect induction 4.0 25.0 22 7.0 9.6 1.0 7.5 10600.0 0.0 ; Numeric arguments: WSP_min WSP_max N_wsp Omega_min Omega_max Gearratio TSR  P_max Pitch_min
+; compute_steadystate nobladedeform tipcorrect induction gradients ;
+end hawcstab2 ;       
+;
+exit;

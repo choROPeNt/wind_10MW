@@ -1,0 +1,8 @@
+These are the original coordinates for the FFA-W3-XXX
+airfoils.
+
+In addition to these an FFA-W3-480 airfoil has been created
+which was used to generate the blade.
+
+These airfoils do not include the Gurney flaps added to the inner part of
+the RWT blade, see the CFD/2D/FFA_w3XXX directories for these airfoil geometries.
