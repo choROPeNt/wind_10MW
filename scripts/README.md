@@ -42,7 +42,7 @@ Only have the **Rotational and Aerodynamic loads** on the blade and only have **
 ### Running the script 
 Once the script has been requested to run from ABAQUS. A graph would appear with the input aerodynamic loads and corrected aerodyanmic loads with futher details in the report. 
 
-The Message Area would then would output the current settings as a verification step to ensure the inputs have been inputted correctly.
+The Message Area would then  output the current settings as a verification step to ensure the inputs have been inputted correctly.
 
 etc.
 ########### Input Data ###########
