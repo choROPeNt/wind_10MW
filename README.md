@@ -1,10 +1,10 @@
 # wind_10MW
-generic finite element model of a 10MW wind blade
+Generic finite element model of a 10MW wind blade. Breakdown of the git repository is shown below 
 
-this is a project
+![Alt text](Diagram_of_Git.png)
 
 ```bash
 abaqus job=<input.inp> cpus=<no_cpus> interactive
 ```
 
-![Alt text](../Diagram_of_Git.png)
+
