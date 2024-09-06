@@ -23,7 +23,7 @@ To get the displacements from ABAQUS;
 
 
 ## LoadDATA2Abaqus.py
-The script would automatically input these loads on the DTU 10 MW ABAQUS model
+This script would automatically input these loads on the DTU 10 MW ABAQUS model
 1. Aerodynamic loads
 2. Rotational loads
 3. Gravitational loads
@@ -42,36 +42,7 @@ Only have the **Rotational and Aerodynamic loads** on the blade and only have **
 ### Running the script 
 Once the script has been requested to run from ABAQUS. A graph would appear with the input aerodynamic loads and corrected aerodyanmic loads with futher details in the report. 
 
-The Message Area would then  output the current settings as a verification step to ensure the inputs have been inputted correctly.
+The Message Area would output the current settings as a verification step to ensure the inputs have been inputted correctly.
 
-etc.
-########### Input Data ###########
-Flow type = turb
-Windspeed (m/s) = 9
-()
-Rotational Speed (Rad/s) = 0.757036
-Blade angle = -6e-05
-Precone angle = 0
-()
-Using Custom Loading
-Angle of the blade now = 6e-05
-############# Step #############
-Time for 1 cycle =8.299717988549535
-no of cycles = 2
-Step time for cyclic loading =16.6
-()
-############# Loads #############
-Custom Loads
-()
-########### Unadjusted Values ###########
-Total Force, Area Fx =350836.12402785954
-Total Force, Area Fz =52609.57558176201
-Sum of Fx =410822.433926
-Sum of Fz =61791.1900782
-########### Adjusted Values ###########
-Ajust Fx ratio = 0.8539848242353242
-Ajust Fz ratio = 0.8514090036976263
-Total Force, Sum of Fx =350836.124028
-Total Force, Sum of Fz =52609.5755818
 
 :shipit:
