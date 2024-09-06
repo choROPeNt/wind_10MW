@@ -6,29 +6,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os as os 
 
-# Initial variables
+# Current Working Directory
+print("Current Working Directory = " + os.getcwd())
+cwd = os.getcwd()
+
+
+# Initial variables and settings
+model = 'refblade_master'   # Name of model 
 
 flow = 'turb'               # 'turb' or 'tran'
 wsp = 9                     # Windspeed [5,6,8,9,10,11,12,16,20,25]
 cycles = 2
 
-precone = 0
-#tilt = 5
-
 Aeroload = 1                # Custom 1 , Use given files 0 
+Rotload = [ 0 , 0.789 ]         # [ Custom for 1 or Use given files 0, if custom state omega (rad/s) ]
 
+CustomPitch = [ 0, 10 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
+precone = 0                   # From DTU 10 MW docs Precone is 2.5 degree
+tilt = 5                       # From DTU 10 MW docs Precone is 5 degree
 
-# .dat files
-file_path1 = '..\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baseline\\\EllipSys3D\\' +flow +'\\power_curve.dat'
-file_path2 = '..\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baseline\\\EllipSys3D\\' + flow + '\\wsp_' + str(wsp) + '_spanwise_loads.dat'
+# Input Custom Aeroloads 
+input_CustomFx = cwd + '\wind_10MW\scripts\CSV Files\Forces\Fx_LES_9.CSV'
+input_CustomFz = cwd + '\wind_10MW\scripts\CSV Files\Forces\Fz_LES_9.CSV'
+
+# Loading .dat files
+file_path1 = cwd + '\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baseline\\\EllipSys3D\\' +flow +'\\power_curve.dat'
+file_path2 = cwd + '\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baseline\\\EllipSys3D\\' + flow + '\\wsp_' + str(wsp) + '_spanwise_loads.dat'
 
 data1 = np.genfromtxt(file_path1, comments='#', delimiter=None) # windspeed,power,thrust,cp,ct,pitch,omega [10x7]
 data2 = np.genfromtxt(file_path2, comments='#', delimiter=None) # Radius, Fx, Fz, localCp, localCt [101x5] 
 
-# Varibles
-windspeed   = data1[:,0]    # [5,6,8,9,10,11,12,16,20,25]
-Omega       = data1[:,6]    # Rotational Velocity rad/s
-Pitch       = (data1[:,5])    # Degrees
+
+
+
+
 
 # Finding the index 
 def find_row_index(data, target_windspeed):
@@ -40,21 +51,42 @@ def find_row_index(data, target_windspeed):
 
 row_index = find_row_index(data1, wsp)
 
+# Logic settings with Custom inputs and from .dat files
+windspeed   = data1[:,0]    # [5,6,8,9,10,11,12,16,20,25]
+
+if Rotload[0] == 0:
+    Omega       = data1[row_index,6]    # Rotational Velocity rad/s
+    RotInd      = ""
+else: 
+    Omega       = Rotload[1]
+    RotInd      = "(Custom)"
+
+if CustomPitch[0] == 0:
+    Pitch       = (data1[row_index,5])    # Degrees
+    PitInd      = ""
+else: 
+    Pitch       = CustomPitch[1]
+    PitInd      = "(Custom)"
+
+
+
+
+
 # Display the data
 print()
 print("########### Input Data ###########")
 print('Flow type = ' + flow)
 print('Windspeed (m/s) = ' + str(wsp))
 print()
-print('Rotational Speed (Rad/s) = ' + str(Omega[row_index]))
-print('Blade angle = ' + str(Pitch[row_index]))
+print('Rotational Speed (Rad/s) = ' + str(Omega) + RotInd)
+print('Blade angle = ' + str(Pitch) + PitInd)
 print('Precone angle = ' + str(precone))
+print('Tilt angle = ' + str(tilt))
 print()
 if Aeroload == 0: 
     print('Using DTU10MW Aeroloads')
 else:
-    print('Using Custom Loading')
-
+    print('Using Custom Aeroloads')
 
 
 
@@ -63,7 +95,7 @@ else:
 
 # Blade Pitch
 # Find the current angle of the blade 
-a = mdb.models['refblade_master'].rootAssembly
+a = mdb.models[model].rootAssembly
 
 # Get the position information of the instance
 position_info = a.instances['PART-1-1'].getRotation()
@@ -77,32 +109,26 @@ Angle = position_info[2]
 
 # a.translate(instanceList=('PART-1-1', ), vector=Axis)
 
-a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0), 
+a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),    # Resets the angle back to origin
     axisDirection=Vector, angle=-Angle)
 
-a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 1.0),    # need to check the angle at which they rotate
-    axisDirection=(0.0, 0.0, 1.0), angle=Pitch[row_index])
+# a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 1.0),    # need to check the angle at which they rotate
+#     axisDirection=(0.0, 0.0, 1.0), angle=Pitch)
+# position_aft = a.instances['PART-1-1'].getRotation()
+# Angleaft = position_aft[2]
+# print('Angle of the blade now = ' + str(Angleaft)+ '\n')
 
-position_aft = a.instances['PART-1-1'].getRotation()
-Angleaft = position_aft[2]
+## Precone + Pitch
 
-print('Angle of the blade now = ' + str(Angleaft)+ '\n')
-
-# # Precone
-
-a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0), 
+a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),    # Precone
     axisDirection=(1.0, 0.0, 0.0), angle=precone)
 
-zcoor = sqrt(100/((tan(precone*pi/180)**2)+1))
+zcoor = sqrt(100/((tan(precone*pi/180)**2)+1))              
 ycoor = -tan(precone*pi/180)*zcoor
 
-a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0), 
-    axisDirection=(0, ycoor, zcoor), angle=-Pitch[row_index])
+a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),     # Pitching at the right vector 
+    axisDirection=(0, ycoor, zcoor), angle=Pitch)
 
-# a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0), 
-#     axisDirection=(0.628371, -0.168371, 0.759474), angle=-38.866574)
-
-# ((-0.035036, 0.168629, 0.014943), (0.461614, 0.017315, 0.886912), 43.139419)
 
 
 
@@ -111,14 +137,14 @@ a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),
 
 ############# Step #############
 
-mdb.models['refblade_master'].StaticStep(name='Step-1', previous='Initial')
-mdb.models['refblade_master'].steps['Step-1'].setValues(timePeriod=1,nlgeom=ON,initialInc=0.1,maxNumInc=100000)
+mdb.models[model].StaticStep(name='Step-1', previous='Initial')
+mdb.models[model].steps['Step-1'].setValues(timePeriod=1,nlgeom=ON,initialInc=0.1,maxNumInc=100000)
 
-mdb.models['refblade_master'].StaticStep(name='Step-2', previous='Step-1')
-mdb.models['refblade_master'].steps['Step-2'].setValues(timePeriod=round(cycles*2*pi/(Omega[row_index]),1), timeIncrementationMethod=FIXED, noStop=OFF,initialInc=0.1,maxNumInc=100000,nlgeom=ON)
+mdb.models[model].StaticStep(name='Step-2', previous='Step-1')
+mdb.models[model].steps['Step-2'].setValues(timePeriod=round(cycles*2*pi/(Omega),1), timeIncrementationMethod=FIXED, noStop=OFF,initialInc=0.1,maxNumInc=100000,nlgeom=ON)
 
 # Field Output
-mdb.models['refblade_master'].FieldOutputRequest(name='F-Output-1', 
+mdb.models[model].FieldOutputRequest(name='F-Output-1', 
     createStepName='Step-1', variables=('S', 'MISES', 'MISESMAX', 'TSHR', 
     'CTSHR', 'ALPHA', 'TRIAX', 'LODE', 'VS', 'PS', 'CS11', 'ALPHAN', 'SSAVG', 
     'MISESONLY', 'PRESSONLY', 'SEQUT', 'YIELDPOT', 'NBSEQ', 'GKSEQ', 'U', 'UT', 
@@ -126,20 +152,20 @@ mdb.models['refblade_master'].FieldOutputRequest(name='F-Output-1',
 
 # Set of all the reference nodes
 
-regionDef=mdb.models['refblade_master'].rootAssembly.sets['REF_ALL']
+regionDef=mdb.models[model].rootAssembly.sets['REF_ALL']
 
-mdb.models['refblade_master'].HistoryOutputRequest(name='Flapwise', 
+mdb.models[model].HistoryOutputRequest(name='Flapwise', 
     createStepName='Step-2', variables=('U2', ), region=regionDef, 
     sectionPoints=DEFAULT, rebar=EXCLUDE)
 
-mdb.models['refblade_master'].HistoryOutputRequest(name='Edgewise', 
+mdb.models[model].HistoryOutputRequest(name='Edgewise', 
     createStepName='Step-2', variables=('U1', ), region=regionDef, 
     sectionPoints=DEFAULT, rebar=EXCLUDE)
 
 print('############# Step #############')
-print('Time for 1 cycle =' + str(2*pi/(Omega[row_index])))
+print('Time for 1 cycle =' + str(2*pi/(Omega)))
 print('no of cycles = '+ str(cycles))
-print('Step time for cyclic loading =' + str(round(cycles*2*pi/(Omega[row_index]),1)))
+print('Step time for cyclic loading =' + str(round(cycles*2*pi/(Omega),1)))
 print()
 
 
@@ -160,10 +186,10 @@ nodes = 101
 Dist_list = []
 
 for ref_no in range(nodes):
-    #CoorZ = mdb.models['refblade_master'].rootAssembly.instances['PART-1-1'].nodes[101395+ref_no].coordinates[2]    #Redo with the sets
-    X = mdb.models['refblade_master'].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[0]
-    Y = mdb.models['refblade_master'].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[1]
-    Z = mdb.models['refblade_master'].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[2]
+    #CoorZ = mdb.models[model].rootAssembly.instances['PART-1-1'].nodes[101395+ref_no].coordinates[2]    #Redo with the sets
+    X = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[0]
+    Y = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[1]
+    Z = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[2]
     #print(CoorZ)
     Dist = sqrt(X**2+Y**2+Z**2)
 
@@ -184,17 +210,16 @@ np.savetxt(output_file, coorZ_matrix, delimiter=',', fmt='%.6f')
 #Import loads 
 if Aeroload == 1: 
     print('Custom Loads')
-    input_LESFx = r'C:\Abaqus_temp\scripts\CSV Files\Fx_LES_9.CSV'
-    input_LESFz = r'C:\Abaqus_temp\scripts\CSV Files\Fz_LES_9.CSV'
-
-    LESFx =  np.loadtxt(input_LESFx, delimiter=',', skiprows=1)
-    LESFz =  np.loadtxt(input_LESFz, delimiter=',', skiprows=1)
+    CustomFx =  np.loadtxt(input_CustomFx, delimiter=',', skiprows=1)
+    CustomFz =  np.loadtxt(input_CustomFz, delimiter=',', skiprows=1)
 
     Fx = LESFx[:,1]*1000
     Fz = LESFz[:,1]*1000
 
-    RadiusFx = LESFx[:,0]*89.15
-    RadiusFz = LESFz[:,0]*89.15
+    # If the x axis of the data is normalised 
+
+    # RadiusFx = LESFx[:,0]*89.15
+    # RadiusFz = LESFz[:,0]*89.15
 
 else:
     print('Using DTU10MW Aeroloads')
@@ -268,12 +293,13 @@ plt.show()
 for ref_no in range(nodes):
     # print('REFPOINT-%03.f_REFPOINT'  %(ref_no+1))
     region = a.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)]
-    datum = mdb.models['refblade_master'].rootAssembly.instances['PART-1-1'].datums[1082]
+    datum = mdb.models[model].rootAssembly.instances['PART-1-1'].datums[1082]
 
-    mdb.models['refblade_master'].ConcentratedForce(name='Load-%03.f_REFPOINT'  %(ref_no+2), 
+    mdb.models[model].ConcentratedForce(name='Load-%03.f_REFPOINT'  %(ref_no+2), 
         createStepName='Step-1', region=region, cf1=Fz_interpolated[ref_no], cf2=Fx_interpolated[ref_no],
-        distributionType=UNIFORM, field='', localCsys=None, follower=ON)
-    #, follower=ON Nodal Rotation setting
+        distributionType=UNIFORM, field='', localCsys=None)
+    
+    # follower=ON for Nodal Rotation setting
     # 
     # From paper, the force is normal and tangent along the span 
 
@@ -282,28 +308,32 @@ for ref_no in range(nodes):
 
 
 # Rotational Loads
+# Abaqus follows a right hand rule for rotation
 
 region = a.sets['All']
-mdb.models['refblade_master'].RotationalBodyForce(name='Load-Rotational', 
-    createStepName='Step-1', region=region, magnitude=Omega[row_index], centrifugal=ON, 
+mdb.models[model].RotationalBodyForce(name='Load-Rotational', 
+    createStepName='Step-1', region=region, magnitude=Omega, centrifugal=ON, 
     rotaryAcceleration=OFF, point1=(0.0, 0.0, 0.0), point2=(0.0, 01.0, 0.0))
 
 
 
 
-# Gravitational loads
+# # Gravitational loads
 # Rotates anti-clockwise, Starting at bottom dead centre ie blade tip pointed to ground
 
 # Periodic Amplitude
-mdb.models['refblade_master'].PeriodicAmplitude(name='Sin', timeSpan=STEP, 
-    frequency=Omega[row_index], start=0.0, a_0=0.0, data=((0.0, 1.0), ))
+mdb.models[model].PeriodicAmplitude(name='Sin', timeSpan=STEP, 
+    frequency=Omega, start=0.0, a_0=0.0, data=((0.0, 1.0), ))
     
-mdb.models['refblade_master'].PeriodicAmplitude(name='Cos', timeSpan=STEP, 
-    frequency=Omega[row_index], start=0.0, a_0=0.0, data=((1.0, 0.0), ))
+mdb.models[model].PeriodicAmplitude(name='Cos', timeSpan=STEP, 
+    frequency=Omega, start=0.0, a_0=0.0, data=((1.0, 0.0), ))
 
 #Grav Loading
-mdb.models['refblade_master'].Gravity(name='Load-GravSin', createStepName='Step-2',     # Note the -1 Due to inital location of grac vector 
+mdb.models[model].Gravity(name='Load-GravBDC', createStepName='Step-1',     # Note the -1 Due to inital location of grac vector 
+    comp1=-1.0, distributionType=UNIFORM, field='')
+
+mdb.models[model].Gravity(name='Load-GravSin', createStepName='Step-2',     # Note the -1 Due to inital location of grac vector 
     comp1=-1.0, amplitude='Sin', distributionType=UNIFORM, field='')
 
-mdb.models['refblade_master'].Gravity(name='Load-GravCos', createStepName='Step-2', 
+mdb.models[model].Gravity(name='Load-GravCos', createStepName='Step-2', 
     comp3=1.0, amplitude='Cos', distributionType=UNIFORM, field='')
