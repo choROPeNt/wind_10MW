@@ -7,4 +7,4 @@ this is a project
 abaqus job=<input.inp> cpus=<no_cpus> interactive
 ```
 
-![Alt text](../Diagram of Git.png)
+![Alt text](../Diagram_of_Git.png)
