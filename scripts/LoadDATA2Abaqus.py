@@ -21,13 +21,16 @@ cycles = 2
 Aeroload = 1                # Custom 1 , Use given files 0 
 Rotload = [ 0 , 0.789 ]         # [ Custom for 1 or Use given files 0, if custom state omega (rad/s) ]
 
-CustomPitch = [ 0, 10 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
+CustomPitch = [ 1, 0 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
 precone = 0                   # From DTU 10 MW docs Precone is 2.5 degree
 tilt = 5                       # From DTU 10 MW docs Precone is 5 degree
 
 # Input Custom Aeroloads 
 input_CustomFx = cwd + '\wind_10MW\scripts\CSV Files\Forces\Fx_LES_9.CSV'
 input_CustomFz = cwd + '\wind_10MW\scripts\CSV Files\Forces\Fz_LES_9.CSV'
+
+# Import Z coordinates of the Reference points 
+coorZ_matrix_file = cwd + '\wind_10MW\scripts\coorZ_matrix.CSV'
 
 # Loading .dat files
 file_path1 = cwd + '\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baseline\\\EllipSys3D\\' +flow +'\\power_curve.dat'
@@ -36,9 +39,7 @@ file_path2 = cwd + '\\wind_10MW\\DTU 10 Mw Master\\CFD\\3D_DTU_10MW_RWT\\baselin
 data1 = np.genfromtxt(file_path1, comments='#', delimiter=None) # windspeed,power,thrust,cp,ct,pitch,omega [10x7]
 data2 = np.genfromtxt(file_path2, comments='#', delimiter=None) # Radius, Fx, Fz, localCp, localCt [101x5] 
 
-
-
-
+coorZ_matrix = np.genfromtxt(coorZ_matrix_file, comments='#', delimiter=None)
 
 
 # Finding the index 
@@ -183,29 +184,32 @@ print('############# Loads #############')
 # Aeroloads to the nodes
 # ABAQUS Variables 
 nodes = 101
-Dist_list = []
 
-for ref_no in range(nodes):
-    #CoorZ = mdb.models[model].rootAssembly.instances['PART-1-1'].nodes[101395+ref_no].coordinates[2]    #Redo with the sets
-    X = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[0]
-    Y = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[1]
-    Z = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[2]
-    #print(CoorZ)
-    Dist = sqrt(X**2+Y**2+Z**2)
+# TO get the z coordinates [Only need this once and use with 0 degrees of precone, pitch and tilt]
+# Dist_list = []
 
-    Dist_list.append(Dist)
+# for ref_no in range(nodes):
+#     #CoorZ = mdb.models[model].rootAssembly.instances['PART-1-1'].nodes[101395+ref_no].coordinates[2]    #Redo with the sets
+#     X = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[0]
+#     Y = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[1]
+#     Z = mdb.models[model].rootAssembly.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)].nodes[0].coordinates[2]
+#     #print(CoorZ)
+#     #Dist = sqrt(X**2+Y**2+Z**2)
+#     Dist = Z
 
-# Convert the list to a NumPy array (matrix)
-coorZ_matrix = np.array(Dist_list)
+#     Dist_list.append(Dist)
 
-# Manually change the last value of CoorZ to 89
-coorZ_matrix[-1] = 89
+# # Convert the list to a NumPy array (matrix)
+# coorZ_matrix = np.array(Dist_list)
 
-# Export coorZ_Matrix 
-output_file = 'C:\Abaqus_temp\scripts\coorZ_matrix.csv'
+# # Manually change the last value of CoorZ to 89
+# coorZ_matrix[-1] = 89
 
-# Export the matrix to a CSV file
-np.savetxt(output_file, coorZ_matrix, delimiter=',', fmt='%.6f')
+# # Export coorZ_Matrix 
+# output_file = 'C:\Abaqus_temp\scripts\coorZ_matrix.csv'
+
+# # Export the matrix to a CSV file
+# np.savetxt(output_file, coorZ_matrix, delimiter=',', fmt='%.6f')
 
 #Import loads 
 if Aeroload == 1: 
@@ -213,13 +217,13 @@ if Aeroload == 1:
     CustomFx =  np.loadtxt(input_CustomFx, delimiter=',', skiprows=1)
     CustomFz =  np.loadtxt(input_CustomFz, delimiter=',', skiprows=1)
 
-    Fx = LESFx[:,1]*1000
-    Fz = LESFz[:,1]*1000
+    Fx = CustomFx[:,1]*1000
+    Fz = CustomFz[:,1]*1000
 
     # If the x axis of the data is normalised 
 
-    # RadiusFx = LESFx[:,0]*89.15
-    # RadiusFz = LESFz[:,0]*89.15
+    RadiusFx = CustomFx[:,0]*89.15
+    RadiusFz = CustomFz[:,0]*89.15
 
 else:
     print('Using DTU10MW Aeroloads')
@@ -293,9 +297,10 @@ plt.show()
 for ref_no in range(nodes):
     # print('REFPOINT-%03.f_REFPOINT'  %(ref_no+1))
     region = a.sets['REFPOINT-%03.f_REFPOINT' %(ref_no+1)]
-    datum = mdb.models[model].rootAssembly.instances['PART-1-1'].datums[1082]
+    #datum = mdb.models[model].rootAssembly.instances['PART-1-1'].datums[1082]
+    # what does datum do ?
 
-    mdb.models[model].ConcentratedForce(name='Load-%03.f_REFPOINT'  %(ref_no+2), 
+    mdb.models[model].ConcentratedForce(name='Load-%03.f_REFPOINT'  %(ref_no+1), 
         createStepName='Step-1', region=region, cf1=Fz_interpolated[ref_no], cf2=Fx_interpolated[ref_no],
         distributionType=UNIFORM, field='', localCsys=None)
     
@@ -303,7 +308,8 @@ for ref_no in range(nodes):
     # 
     # From paper, the force is normal and tangent along the span 
 
-
+# For the Aero_coorZ_matrix , the name of the set it airfoil_REF_%03.f
+# REFPOINT-%03.f_REFPOINT
 
 
 
