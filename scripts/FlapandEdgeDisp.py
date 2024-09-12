@@ -62,8 +62,8 @@ ax1.plot(CFDEdge[:,0]*89, CFDEdge[:,1], marker='o', linestyle='-', color='g', ma
 ax1.plot(Horcas11Edge[:,0]*89, Horcas11Edge[:,1], marker='o', linestyle='-', color='y', markersize=5, label = 'Horcas U=11')
 
 ax1.set_title('Edgewise Displacement vs. Z Coordinate')
-ax1.set_xlabel('Z Coordinate')
-ax1.set_ylabel('Edgewise Displacement')
+ax1.set_xlabel('Z Coordinate (m)')
+ax1.set_ylabel('Edgewise Displacement (m)')
 ax1.grid(True)
 
 
@@ -73,8 +73,8 @@ ax2.plot(CoorZ, FlapDisp_Pre, marker='o', linestyle='-', color='r', markersize=5
 ax2.plot(CoorZ, FlapDisp_NPre, marker='o', linestyle='-', color='m', markersize=5, label = 'ABAQUS Results No Precone U=10')
 
 ax2.set_title('Flapwise Displacement vs. Z Coordinate')
-ax2.set_xlabel('Z Coordinate')
-ax2.set_ylabel('Flapwise Displacement')
+ax2.set_xlabel('Z Coordinate (m)')
+ax2.set_ylabel('Flapwise Displacement (m)')
 ax2.grid(True)
 
 ax2.plot(Horcas[:,0]*89, Horcas[:,1], marker='o', linestyle='-', color='g', markersize=5, label = 'Horcas U=10')
