@@ -44,5 +44,8 @@ Once the script has been requested to run from ABAQUS. A graph would appear with
 
 The Message Area would output the current settings as a verification step to ensure the inputs have been inputted correctly.
 
+## Set Creator.py
+This script creates a sets for each airfoil shell/ outer section and a reference point. It then performs a kinematic coupling between the outer shell and reference point. This script was made as futher inprove the accuracy of the application of the aerodynamic loads. Read Report 2 for more reference. 
+
 
 :shipit:
