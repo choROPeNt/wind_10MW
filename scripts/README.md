@@ -47,5 +47,7 @@ The Message Area would output the current settings as a verification step to ens
 ## Set Creator.py
 This script creates a sets for each airfoil shell/outer section and a reference point. It then performs a kinematic coupling between the outer shell and reference point. This script was made to futher inprove the accuracy of the application of the aerodynamic loads. Read Report 2 for more reference. 
 
+## VideoScript.py
+This script creates a video of the graph disaplcement vs length of blade over time. It is most useful when trying to understand and see that displacement move during the cyclic gravitational load phase. The VideoScript inputs are a file with time and displacements and a seperate radius of node file ie coorZ_matrix.CSV
 
 :shipit:
