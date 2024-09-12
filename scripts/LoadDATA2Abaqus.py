@@ -18,11 +18,11 @@ flow = 'turb'               # 'turb' or 'tran'
 wsp = 9                     # Windspeed [5,6,8,9,10,11,12,16,20,25]
 cycles = 2
 
-Aeroload = 1                # Custom 1 , Use given files 0 
+Aeroload = 0                # Custom 1 , Use given files 0 
 Rotload = [ 0 , 0.789 ]         # [ Custom for 1 or Use given files 0, if custom state omega (rad/s) ]
 
-CustomPitch = [ 1, 0 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
-precone = 0                   # From DTU 10 MW docs Precone is 2.5 degree
+CustomPitch = [ 0, 0 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
+precone = 2.5                   # From DTU 10 MW docs Precone is 2.5 degree
 tilt = 5                       # From DTU 10 MW docs Precone is 5 degree
 
 # Input Custom Aeroloads 
@@ -122,10 +122,10 @@ a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),    # Resets the
 ## Precone + Pitch
 
 a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),    # Precone
-    axisDirection=(1.0, 0.0, 0.0), angle=precone)
+    axisDirection=(1.0, 0.0, 0.0), angle=precone+tilt)
 
-zcoor = sqrt(100/((tan(precone*pi/180)**2)+1))              
-ycoor = -tan(precone*pi/180)*zcoor
+zcoor = sqrt(100/((tan((precone+tilt)*pi/180)**2)+1))              
+ycoor = -tan((precone+tilt)*pi/180)*zcoor
 
 a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),     # Pitching at the right vector 
     axisDirection=(0, ycoor, zcoor), angle=Pitch)
@@ -316,12 +316,17 @@ for ref_no in range(nodes):
 # Rotational Loads
 # Abaqus follows a right hand rule for rotation
 
+ycoor = sqrt(100/((tan((tilt)*pi/180)**2)+1))              
+zcoor = tan((tilt)*pi/180)*ycoor
+
+# print(zcoor)
+# print(ycoor)
+# To include affects of pitch.
+
 region = a.sets['All']
 mdb.models[model].RotationalBodyForce(name='Load-Rotational', 
     createStepName='Step-1', region=region, magnitude=Omega, centrifugal=ON, 
-    rotaryAcceleration=OFF, point1=(0.0, 0.0, 0.0), point2=(0.0, 01.0, 0.0))
-
-
+    rotaryAcceleration=OFF, point1=(0.0, 0.0, 0.0), point2=(0.0, ycoor, zcoor))
 
 
 # # Gravitational loads
