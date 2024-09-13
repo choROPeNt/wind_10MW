@@ -1,9 +1,7 @@
 # wind_10MW
-Generic finite element model of a 10MW wind blade. Breakdown of the git repository is shown below 
+This git contains files of the finite element model of the DTU 10MW Reference wind blade and assosicated python scripts for the pre- and post-processing of the displacem ABAQUS model of the blade. 
 
-![Network diagram of this Git Repository](Diagram_of_Git.png)
-
-The DTU 10 MW Reference git can be found here through this [link](https://gitlab.windenergy.dtu.dk/rwts/dtu-10mw-rwt)
+The DTU 10 MW Reference git repository can be found here through this [link](https://gitlab.windenergy.dtu.dk/rwts/dtu-10mw-rwt)
 
 ```bash
 abaqus job=<input.inp> cpus=<no_cpus> interactive
