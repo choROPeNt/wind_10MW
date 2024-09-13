@@ -21,7 +21,7 @@ cycles = 2
 Aeroload = 0                # Custom 1 , Use given files 0 
 Rotload = [ 0 , 0.789 ]         # [ Custom for 1 or Use given files 0, if custom state omega (rad/s) ]
 
-CustomPitch = [ 0, 0 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
+CustomPitch = [ 1, 20 ]      # [ Custom for 1 or Use given files 0, if custom state angle (degrees)]     
 precone = 2.5                   # From DTU 10 MW docs Precone is 2.5 degree
 tilt = 5                       # From DTU 10 MW docs Precone is 5 degree
 
@@ -128,7 +128,7 @@ zcoor = sqrt(100/((tan((precone+tilt)*pi/180)**2)+1))
 ycoor = -tan((precone+tilt)*pi/180)*zcoor
 
 a.rotate(instanceList=('PART-1-1', ), axisPoint=(0.0, 0.0, 0.0),     # Pitching at the right vector 
-    axisDirection=(0, ycoor, zcoor), angle=Pitch)
+    axisDirection=(0, ycoor, zcoor), angle=-Pitch)
 
 
 
